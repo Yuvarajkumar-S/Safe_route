@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SafeRoute - Smart Safety Navigation</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="time">9:41</div>
+            <div class="status-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <i class="fas fa-bars menu-btn" id="menuBtn"></i>
+                <h1><i class="fas fa-shield-alt"></i> SafeRoute</h1>
+            </div>
+            <div class="header-right">
+                <div class="notification-wrapper">
+                    <i class="fas fa-bell notif-btn" id="notifBtn"></i>
+                    <span class="notif-badge">3</span>
+                </div>
+                <i class="fas fa-user-circle profile-btn" id="profileBtn"></i>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-box" id="searchBox">
+                <i class="fas fa-search"></i>
+                <div class="search-text">
+                    <span class="main-text">Where to?</span>
+                    <span class="sub-text">Enter destination</span>
+                </div>
+                <i class="fas fa-microphone voice-btn" id="voiceBtn"></i>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Map Section -->
+            <div class="map-section">
+                <div id="map"></div>
+                
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <button class="map-btn" id="currentLocationBtn">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                    <button class="map-btn" id="zoomInBtn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="map-btn" id="zoomOutBtn">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="map-btn" id="layersBtn">
+                        <i class="fas fa-layer-group"></i>
+                    </button>
+                </div>
+
+                <!-- Live Traffic Indicator -->
+                <div class="live-traffic" id="liveTraffic">
+                    <span class="live-dot"></span>
+                    <span>LIVE</span>
+                    <span class="traffic-info">Traffic • Normal</span>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="quick-actions">
+                    <button class="action-btn" id="heatmapBtn">
+                        <i class="fas fa-fire"></i>
+                        <span>Heatmap</span>
+                    </button>
+                    <button class="action-btn" id="reportBtn">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Report</span>
+                    </button>
+                    <button class="action-btn" id="routeBtn">
+                        <i class="fas fa-route"></i>
+                        <span>Route</span>
+                    </button>
+                    <button class="action-btn emergency" id="sosBtn">
+                        <i class="fas fa-bell"></i>
+                        <span>SOS</span>
+                    </button>
+                </div>
+
+                <!-- Safety Score Card -->
+                <div class="safety-card" id="safetyCard">
+                    <div class="safety-header">
+                        <span><i class="fas fa-shield-alt"></i> Safety Score</span>
+                        <span class="live-badge">LIVE</span>
+                    </div>
+                    <div class="safety-body">
+                        <div class="safety-circle">
+                            <svg width="60" height="60">
+                                <circle cx="30" cy="30" r="26" fill="none" stroke="#e0e0e0" stroke-width="4"/>
+                                <circle id="safetyProgress" cx="30" cy="30" r="26" fill="none" 
+                                        stroke="#4CAF50" stroke-width="4" stroke-dasharray="163" 
+                                        stroke-dashoffset="24" transform="rotate(-90 30 30)"/>
+                                <text x="30" y="35" text-anchor="middle" fill="#2C3E50" font-size="12" font-weight="bold">85%</text>
+                            </svg>
+                        </div>
+                        <div class="safety-details">
+                            <div class="safety-item">
+                                <i class="fas fa-sun"></i>
+                                <span>Day: 92%</span>
+                            </div>
+                            <div class="safety-item">
+                                <i class="fas fa-moon"></i>
+                                <span>Night: 45%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Alert -->
+                <div class="danger-alert" id="dangerAlert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="alert-content">
+                        <strong>Danger Zone Ahead!</strong>
+                        <span>3 incidents reported • Avoid area</span>
+                    </div>
+                    <button class="alert-btn" id="findSafeRouteBtn">Find Safe Route</button>
+                </div>
+            </div>
+
+            <!-- Places Section -->
+            <div class="places-section">
+                <div class="section-header">
+                    <h3>Popular Places</h3>
+                    <button class="view-all" id="viewAllPlaces">View All</button>
+                </div>
+                <div class="places-grid" id="placesGrid">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Recent Reports Section -->
+            <div class="reports-section">
+                <div class="section-header">
+                    <h3>Recent Reports</h3>
+                    <button class="view-all" id="viewAllReports">View All</button>
+                </div>
+                <div class="reports-horizontal" id="reportsHorizontal">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" id="mapTab">
+                <i class="fas fa-map"></i>
+                <span>Map</span>
+            </button>
+            <button class="nav-item" id="exploreTab">
+                <i class="fas fa-compass"></i>
+                <span>Explore</span>
+            </button>
+            <button class="nav-item" id="reportsTab">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Reports</span>
+                <span class="nav-badge">3</span>
+            </button>
+            <button class="nav-item" id="profileTab">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal" id="searchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-search"></i> Search</h3>
+                <button class="close-btn" id="closeSearchBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search places...">
+                </div>
+                <div class="recent-searches">
+                    <h4>Recent</h4>
+                    <div class="recent-list" id="recentList"></div>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Explore Modal -->
+    <div class="modal" id="exploreModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-compass"></i> Explore</h3>
+                <button class="close-btn" id="closeExploreBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="categories">
+                    <button class="category-btn active" id="catAll">All</button>
+                    <button class="category-btn" id="catPolice">🚓 Police</button>
+                    <button class="category-btn" id="catHospital">🏥 Hospital</button>
+                    <button class="category-btn" id="catStore">🏪 Stores</button>
+                    <button class="category-btn" id="catFood">🍔 Food</button>
+                </div>
+                <div class="explore-grid" id="exploreGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div class="modal" id="reportsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-circle"></i> Safety Reports</h3>
+                <button class="close-btn" id="closeReportsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="reports-summary">
+                    <div class="summary-item high">
+                        <span class="count">3</span>
+                        <span>High</span>
+                    </div>
+                    <div class="summary-item medium">
+                        <span class="count">2</span>
+                        <span>Medium</span>
+                    </div>
+                    <div class="summary-item low">
+                        <span class="count">1</span>
+                        <span>Low</span>
+                    </div>
+                </div>
+                <div class="reports-list" id="reportsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Incident Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Report Incident</h3>
+                <button class="close-btn" id="closeReportBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Incident Type</label>
+                    <select id="incidentType" class="form-control">
+                        <option value="lighting">Poor Lighting</option>
+                        <option value="suspicious">Suspicious Activity</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="crime">Crime</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Severity</label>
+                    <div class="severity-group">
+                        <label class="severity-opt low">
+                            <input type="radio" name="severity" value="low" checked> Low
+                        </label>
+                        <label class="severity-opt medium">
+                            <input type="radio" name="severity" value="medium"> Medium
+                        </label>
+                        <label class="severity-opt high">
+                            <input type="radio" name="severity" value="high"> High
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="reportDesc" class="form-control" rows="3" placeholder="Describe what happened..."></textarea>
+                </div>
+                <button class="submit-btn" id="submitReportBtn">
+                    <i class="fas fa-paper-plane"></i> Submit Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Modal -->
+    <div class="modal" id="routeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-route"></i> Route Options</h3>
+                <button class="close-btn" id="closeRouteBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="route-tabs">
+                    <button class="route-tab active" id="fastestTab">Fastest</button>
+                    <button class="route-tab" id="safestTab">Safest</button>
+                </div>
+                <div class="route-comparison">
+                    <div class="route-card fastest">
+                        <div class="route-header">
+                            <span class="route-badge">⚡ Fastest</span>
+                            <span class="route-time">8 min</span>
+                        </div>
+                        <div class="route-stats">
+                            <span>0.8 miles</span>
+                            <span class="safety-badge low">Safety 35%</span>
+                        </div>
+                    </div>
+                    <div class="route-card safest recommended">
+                        <div class="route-header">
+                            <span class="route-badge">🛡️ Safest</span>
+                            <span class="route-time">10 min</span>
+                        </div>
+                        <div class="route-stats">
+                            <span>1.1 miles</span>
+                            <span class="safety-badge high">Safety 92%</span>
+                        </div>
+                        <span class="rec-badge">RECOMMENDED</span>
+                    </div>
+                </div>
+                <button class="start-route-btn" id="startRouteBtn">
+                    <i class="fas fa-play"></i> Start Safe Route
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user"></i> Profile</h3>
+                <button class="close-btn" id="closeProfileBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-header">
+                    <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&size=80&background=4285F4&color=fff" alt="Profile">
+                    <div class="profile-info">
+                        <h4>Sarah Johnson</h4>
+                        <p><i class="fas fa-map-pin"></i> New York, NY</p>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-flag"></i>
+                        <strong>12</strong>
+                        <span>Reports</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-route"></i>
+                        <strong>47</strong>
+                        <span>Routes</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <strong>98%</strong>
+                        <span>Safe Rate</span>
+                    </div>
+                </div>
+                <div class="profile-section">
+                    <h4>Trusted Circle</h4>
+                    <div class="contacts-list" id="contactsList"></div>
+                </div>
+                <div class="profile-section">
+                    <h4>Settings</h4>
+                    <div class="settings-list">
+                        <div class="setting-item">
+                            <span><i class="fas fa-moon"></i> Dark Mode</span>
+                            <label class="switch">
+                                <input type="checkbox" id="darkMode">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <span><i class="fas fa-bell"></i> Notifications</span>
+                            <label class="switch">
+                                <input type="checkbox" id="notifications" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOS Modal -->
+    <div class="modal" id="sosModal">
+        <div class="modal-content sos-modal">
+            <div class="sos-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>EMERGENCY SOS</h2>
+            </div>
+            <div class="sos-timer" id="sosTimer">3</div>
+            <p>Alerting emergency contacts in...</p>
+            <div class="sos-contacts">
+                <span>Mom</span>
+                <span>Dad</span>
+                <span>911</span>
+            </div>
+            <div class="sos-actions">
+                <button class="cancel-sos" id="cancelSosBtn">Cancel</button>
+                <button class="send-sos" id="sendSosBtn">Send Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
